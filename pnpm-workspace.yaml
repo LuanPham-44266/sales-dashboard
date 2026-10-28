@@ -7,9 +7,11 @@ packages:
 
 allowBuilds:
   '@parcel/watcher': false
+  bcrypt: true
   core-js: false
   core-js-pure: false
   esbuild: false
+  plyr: true
   sharp: false
 
 minimumReleaseAge: 1440
