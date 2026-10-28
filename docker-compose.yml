@@ -1,20 +1,17 @@
----
 services:
-
   tabler:
-    image: tabler
     container_name: tabler
     build: .
     ports:
-      - 3000:3000
-      - 3010:3010
-    volumes:
-      - ./core:/app/core
-      - ./preview:/app/preview
-      - ./docs:/app/docs
-      - ./shared:/app/shared
-      # keep the node_modules installed in the image (not overwritten by the mounts)
-      - /app/core/node_modules
-      - /app/preview/node_modules
-      - /app/docs/node_modules
+      - "3000:3000"
+      - "3010:3010"
+    restart: always
     tty: true
+    # Thêm biến môi trường kết nối Database nếu dự án cần:
+    # environment:
+    #   - NODE_ENV=production
+    #   - DB_HOST=your_db_host
+    #   - DB_PORT=5432
+    #   - DB_USER=your_db_user
+    #   - DB_PASSWORD=your_db_password
+    #   - DB_NAME=your_db_name
