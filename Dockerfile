@@ -7,7 +7,7 @@ RUN corepack enable
 
 COPY . .
 
-RUN pnpm install 
+RUN pnpm install --frozen-lockfile
 
 # preview website
 EXPOSE 3000
