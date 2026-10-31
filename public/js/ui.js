@@ -1596,7 +1596,7 @@
           showToast('Đang gửi email hóa đơn...', 'success');
           const res = await window.Api.sendInvoiceEmail(invoiceId, email);
           showToast(res.message || 'Gửi email thành công', 'success');
-        } catch (error) { {
+        } catch (error) { 
           showToast(error.message || 'Lỗi gửi email', 'error');
         }
       });
