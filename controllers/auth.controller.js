@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken');
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 const { query } = require('../db');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'sale-demo-secret';

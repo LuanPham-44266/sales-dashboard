@@ -18,4 +18,4 @@ COPY . .
 EXPOSE 3000
 
 # TỐI ƯU 4: Dùng CMD thay vì ENTRYPOINT để linh hoạt hơn trong môi trường Cloud
-CMD [ "pnpm", "run", "start" ]
+CMD [ "pnpm", "run", "start" ]      
