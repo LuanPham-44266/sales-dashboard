@@ -1088,7 +1088,7 @@ app.put('/api/invoices/:id/payment', authRole(['Accountant', 'Manager']), async 
   }
 });
 
-app.post('/api/invoices/:id/send-email', authRole(['Sale', 'Manager']), async (req, res) => {
+app.post('/api/invoices/:id/send-email', authRole(['Accountant', 'Manager']), async (req, res) => {
   try {
     // Giả lập độ trễ mạng và gửi email thành công
     await new Promise(resolve => setTimeout(resolve, 800));
@@ -1097,7 +1097,6 @@ app.post('/api/invoices/:id/send-email', authRole(['Sale', 'Manager']), async (r
     return res.status(500).json({ success: false, message: 'Lỗi gửi email hóa đơn.' });
   }
 });
-
 
 
 // ==========================================

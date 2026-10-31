@@ -722,6 +722,8 @@
   }
 
   async function hydrateRevenueStats() {
+    if (!['Accountant', 'Manager'].includes(state.role)) return;
+
     const totalOrdersEl = document.getElementById('stat-total-orders');
     const totalRevenueEl = document.getElementById('stat-total-revenue');
 
@@ -792,6 +794,8 @@
   }
 
   async function loadReportingData() {
+    if (!['Accountant', 'Manager'].includes(state.role)) return { total_revenue: 0, data: [] };
+
     try {
       const report = await window.Api?.fetchRevenueData?.(state.reportingStartDate, state.reportingEndDate);
       const rows = Array.isArray(report) ? report : Array.isArray(report?.data) ? report.data : [];
