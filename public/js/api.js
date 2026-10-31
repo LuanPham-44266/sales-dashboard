@@ -364,11 +364,12 @@ async function createInvoice(orderId) {
     }
   } 
 
-  async function sendInvoiceEmail(invoiceId) {
+  async function sendInvoiceEmail(invoiceId, email = '') {
     try {
       const response = await fetch(`/api/invoices/${invoiceId}/send-email`, {
         method: 'POST',
-        headers: getAuthHeaders({ 'Content-Type': 'application/json' })
+        headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
+        body: JSON.stringify({ email })
       });
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(payload.message || 'Không thể gửi email hóa đơn.');

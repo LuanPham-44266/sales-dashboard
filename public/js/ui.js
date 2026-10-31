@@ -8,7 +8,7 @@
 
   const ROLE_RULES = {
     Sale: {
-      show: ['#btn-new-order', '#btn-import-order', '#btn-order-filters'],
+      show: ['#btn-new-order', '#btn-import-order', '#btn-order-filters', '#btn-order-filters'],
       hide: ['#btn-export', '#btn-revenue', '#btn-reporting', '#tab-reporting', '#btn-send-quote', '#btn-export-invoice'],
     },
     Accountant: {
@@ -1594,9 +1594,9 @@
         
         try {
           showToast('Đang gửi email hóa đơn...', 'success');
-          const res = await window.Api.sendInvoiceEmail(invoiceId);
+          const res = await window.Api.sendInvoiceEmail(invoiceId, email);
           showToast(res.message || 'Gửi email thành công', 'success');
-        } catch (error) {
+        } catch (error) { {
           showToast(error.message || 'Lỗi gửi email', 'error');
         }
       });
