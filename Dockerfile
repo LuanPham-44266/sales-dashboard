@@ -2,18 +2,20 @@ FROM node:22-alpine
 
 WORKDIR /app
 
-# pnpm via corepack, pinned by the "packageManager" field in package.json
+# Bật corepack để sử dụng pnpm
 RUN corepack enable
 
-COPY . .
+# TỐI ƯU 1: Chỉ copy các file cấu hình thư viện trước
+COPY package.json pnpm-lock.yaml ./
 
-
+# TỐI ƯU 2: Cài đặt dependencies (sẽ được Docker cache lại nếu 2 file trên không đổi)
 RUN pnpm install --config.ignore-scripts=false
 
-# preview website
-EXPOSE 3000
-# documentation website
-EXPOSE 3010
+# TỐI ƯU 3: Copy toàn bộ mã nguồn còn lại vào
+COPY . .
 
-# run tabler dev servers
-ENTRYPOINT [ "pnpm", "run", "start" ]
+# Thông báo port ứng dụng (Lưu ý: Render sẽ cấp Port động)
+EXPOSE 3000
+
+# TỐI ƯU 4: Dùng CMD thay vì ENTRYPOINT để linh hoạt hơn trong môi trường Cloud
+CMD [ "pnpm", "run", "start" ]
