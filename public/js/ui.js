@@ -8,8 +8,8 @@
 
   const ROLE_RULES = {
     Sale: {
-      show: ['#btn-new-order', '#btn-import-order', '#btn-order-filters', '#btn-order-filters'],
-      hide: ['#btn-export', '#btn-revenue', '#btn-reporting', '#tab-reporting', '#btn-send-quote', '#btn-export-invoice'],
+      show: ['#btn-new-order', '#btn-import-order', '#btn-order-filters', '#btn-send-quote'],
+      hide: ['#btn-export', '#btn-revenue', '#btn-reporting', '#tab-reporting', '#btn-export-invoice'],
     },
     Accountant: {
       show: ['#tab-reporting', '#btn-reporting', '#btn-revenue', '#btn-export'],
@@ -228,7 +228,7 @@
           if (canManageInvoice && confirmInvoiceBtn) confirmInvoiceBtn.classList.remove('hidden');
         } else if (invStatusStr === 'posted') {
           invoiceStatusText.className = 'badge bg-primary';
-          if (btnSendInvoice) btnSendInvoice.classList.remove('hidden');
+          if (canManageInvoice && btnSendInvoice) btnSendInvoice.classList.remove('hidden');
           // Chỉ Kế toán/Quản lý mới được Register Payment
           if (canManageInvoice && registerPaymentBtn) registerPaymentBtn.classList.remove('hidden');
         } else if (invStatusStr === 'paid') {
@@ -1227,12 +1227,15 @@
         const email = prompt("Nhập email khách hàng để gửi báo giá:");
         if (!email) return; 
         
+        newSendBtn.disabled = true;
         try {
           showToast('Đang gửi email, vui lòng đợi...', 'success');
           const response = await window.Api?.sendQuoteEmail?.(state.selectedOrderId, email);
           showToast(response?.message || 'Đã gửi email báo giá thành công.', 'success');
         } catch (error) {
           showToast(error?.message || 'Không thể gửi email.', 'error');
+        } finally {
+          newSendBtn.disabled = false;
         }
       });
     }
@@ -1592,12 +1595,15 @@
         const email = prompt("Nhập email khách hàng để gửi hóa đơn:");
         if (!email) return;
         
+        newSendInvBtn.disabled = true;
         try {
           showToast('Đang gửi email hóa đơn...', 'success');
           const res = await window.Api.sendInvoiceEmail(invoiceId, email);
           showToast(res.message || 'Gửi email thành công', 'success');
-        } catch (error) { 
+        } catch (error) {
           showToast(error.message || 'Lỗi gửi email', 'error');
+        } finally {
+          newSendInvBtn.disabled = false;
         }
       });
     }
