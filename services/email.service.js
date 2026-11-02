@@ -83,6 +83,36 @@ async function getQuoteDetail(orderId) {
   };
 }
 
+function createTransporter() {
+  if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
+    throw new Error('SMTP chưa được cấu hình (thiếu SMTP_USER / SMTP_PASS).');
+  }
+  return nodemailer.createTransport({
+    host: process.env.SMTP_HOST || 'smtp.gmail.com',
+    port: Number(process.env.SMTP_PORT || 587),
+    secure: String(process.env.SMTP_SECURE || 'false') === 'true',
+    auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
+    connectionTimeout: 10000,
+    greetingTimeout: 10000,
+    socketTimeout: 20000,
+  });
+}
+
+async function sendInvoiceEmail(orderId, customerEmail, pdfBuffer) {
+  const emailAddress = String(customerEmail || '').trim();
+  if (!emailAddress) {
+    throw new Error('Email khách hàng không hợp lệ.');
+  }
+  const info = await createTransporter().sendMail({
+    from: process.env.SMTP_FROM || process.env.SMTP_USER,
+    to: emailAddress,
+    subject: `Hóa đơn SO-${orderId}`,
+    text: 'Đính kèm là hóa đơn của bạn.',
+    attachments: [{ filename: `invoice-${orderId}.pdf`, content: pdfBuffer }],
+  });
+  return { success: true, messageId: info.messageId };
+}
+
 async function sendQuoteEmail(orderId, customerEmail) {
   const order = await getQuoteDetail(orderId);
 
@@ -95,43 +125,17 @@ async function sendQuoteEmail(orderId, customerEmail) {
     throw new Error('Email khách hàng không hợp lệ hoặc chưa có trong dữ liệu.');
   }
 
-  const transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST || 'smtp.gmail.com',
-    port: Number(process.env.SMTP_PORT || 587),
-    secure: String(process.env.SMTP_SECURE || 'false') === 'true',
-    auth: process.env.SMTP_USER
-      ? {
-          user: process.env.SMTP_USER,
-          pass: process.env.SMTP_PASS,
-        }
-      : undefined,
-  });
+  const transporter = createTransporter();
 
   const mailOptions = {
-    from: process.env.SMTP_FROM || 'noreply@company.local',
+    from: process.env.SMTP_FROM || process.env.SMTP_USER,
     to: emailAddress,
     subject: `Báo giá ${order.order_name || order.id}`,
     html: buildQuoteHtml(order, { name: order.customer_name || 'Khách hàng' }),
   };
 
-  if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
-    const previewTransport = nodemailer.createTransport({ jsonTransport: true });
-    const result = await previewTransport.sendMail(mailOptions);
-    return {
-      success: true,
-      preview: true,
-      messageId: result.messageId,
-      info: result,
-    };
-  }
-
   const info = await transporter.sendMail(mailOptions);
-  return {
-    success: true,
-    preview: false,
-    messageId: info.messageId,
-    info,
-  };
+  return { success: true, messageId: info.messageId };
 }
 
-module.exports = { sendQuoteEmail, buildQuoteHtml, getQuoteDetail };
+module.exports = { sendQuoteEmail, sendInvoiceEmail, buildQuoteHtml, getQuoteDetail };
