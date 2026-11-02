@@ -239,6 +239,7 @@
         method: 'POST',
         headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify({ orderId, email }),
+        signal: AbortSignal.timeout(30000),
       });
 
       if (!response.ok) {
@@ -249,6 +250,7 @@
       return response.json();
     } catch (error) {
       console.error('sendQuoteEmail failed:', error);
+      if (error.name === 'TimeoutError') throw new Error('Máy chủ phản hồi quá lâu, email chưa được gửi.');
       throw error;
     }
   }
@@ -369,13 +371,15 @@ async function createInvoice(orderId) {
       const response = await fetch(`/api/invoices/${invoiceId}/send-email`, {
         method: 'POST',
         headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
-        body: JSON.stringify({ email })
+        body: JSON.stringify({ email }),
+        signal: AbortSignal.timeout(30000),
       });
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(payload.message || 'Không thể gửi email hóa đơn.');
       return payload;
     } catch (error) {
       console.error('sendInvoiceEmail failed:', error);
+      if (error.name === 'TimeoutError') throw new Error('Máy chủ phản hồi quá lâu, email chưa được gửi.');
       throw error;
     }
   } 
