@@ -6,7 +6,7 @@ const multer = require('multer');
 const XLSX = require('xlsx');
 const { pool, query } = require('./db');
 const authRole = require('./middlewares/authRole.middleware');
-const { sendQuoteEmail } = require('./services/email.service');
+const { sendQuoteEmail, sendInvoiceEmail } = require('./services/email.service');
 const { generateInvoicePDF } = require('./services/pdf.service');
 const { getRevenueReport } = require('./controllers/revenue.controller');
 const jwt = require('jsonwebtoken');
@@ -1020,7 +1020,7 @@ app.post('/api/send-quote-email', authRole(['Sale', 'Manager']), async (req, res
     return res.json({ message: 'Gửi email báo giá thành công', result });
   } catch (error) {
     console.error('Error sending quote email:', error);
-    return res.status(500).json({ message: 'Lỗi khi gửi email báo giá', error: error.message });
+    return res.status(500).json({ message: error.message || 'Lỗi khi gửi email báo giá' });
   }
 });
 
@@ -1090,11 +1090,21 @@ app.put('/api/invoices/:id/payment', authRole(['Accountant', 'Manager']), async 
 
 app.post('/api/invoices/:id/send-email', authRole(['Accountant', 'Manager']), async (req, res) => {
   try {
-    // Giả lập độ trễ mạng và gửi email thành công
-    await new Promise(resolve => setTimeout(resolve, 800));
+    const { email } = req.body || {};
+    const found = await query(
+      `SELECT so.id FROM account_move am JOIN sale_order so ON so.name = am.invoice_origin WHERE am.id = $1;`,
+      [req.params.id]
+    );
+    if (!found.rows[0]) {
+      return res.status(404).json({ success: false, message: 'Không tìm thấy hóa đơn.' });
+    }
+    const orderId = found.rows[0].id;
+    const pdfBuffer = await generateInvoicePDF(orderId);
+    await sendInvoiceEmail(orderId, email, pdfBuffer);
     return res.json({ success: true, message: 'Đã gửi email hóa đơn PDF cho khách hàng thành công.' });
   } catch (error) {
-    return res.status(500).json({ success: false, message: 'Lỗi gửi email hóa đơn.' });
+    console.error('Error sending invoice email:', error);
+    return res.status(500).json({ success: false, message: error.message || 'Lỗi gửi email hóa đơn.' });
   }
 });
 
