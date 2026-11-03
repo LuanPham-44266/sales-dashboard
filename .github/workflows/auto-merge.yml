@@ -1,0 +1,28 @@
+name: Merge Staging to Main (Approved)
+
+# Kích hoạt bằng nút bấm thủ công trên GitHub
+on:
+  workflow_dispatch: 
+
+permissions:
+  contents: write
+
+jobs:
+  merge-to-main:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+          
+      - name: Setup Git identity
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          
+      - name: Merge and Push
+        run: |
+          git fetch origin staging
+          git merge origin/staging --no-ff -m "chore(ci): manual triggered merge from staging to main"
+          git push origin main
