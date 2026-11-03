@@ -1,4 +1,5 @@
-const nodemailer = require('nodemailer');
+const { Resend } = require('resend');
+const resend = new Resend(process.env.RESEND_API_KEY);
 const { query } = require('../db');
 
 function buildQuoteHtml(order, customer) {
@@ -82,7 +83,7 @@ async function getQuoteDetail(orderId) {
     items: itemsResult.rows,
   };
 }
-
+/*
 function createTransporter() {
   if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
     throw new Error('SMTP chưa được cấu hình (thiếu SMTP_USER / SMTP_PASS).');
@@ -97,20 +98,22 @@ function createTransporter() {
     socketTimeout: 20000,
   });
 }
-
+*/
 async function sendInvoiceEmail(orderId, customerEmail, pdfBuffer) {
   const emailAddress = String(customerEmail || '').trim();
   if (!emailAddress) {
     throw new Error('Email khách hàng không hợp lệ.');
   }
-  const info = await createTransporter().sendMail({
-    from: process.env.SMTP_FROM || process.env.SMTP_USER,
+  const { data, error } = await resend.emails.send({
+    from: process.env.EMAIL_FROM || 'onboarding@resend.dev',
     to: emailAddress,
     subject: `Hóa đơn SO-${orderId}`,
     text: 'Đính kèm là hóa đơn của bạn.',
     attachments: [{ filename: `invoice-${orderId}.pdf`, content: pdfBuffer }],
   });
-  return { success: true, messageId: info.messageId };
+
+  if (error) throw new Error(`Lỗi Resend: ${error.message}`);
+  return { success: true, messageId: data.id };
 }
 
 async function sendQuoteEmail(orderId, customerEmail) {
@@ -125,17 +128,15 @@ async function sendQuoteEmail(orderId, customerEmail) {
     throw new Error('Email khách hàng không hợp lệ hoặc chưa có trong dữ liệu.');
   }
 
-  const transporter = createTransporter();
-
-  const mailOptions = {
-    from: process.env.SMTP_FROM || process.env.SMTP_USER,
+  const { data, error } = await resend.emails.send({
+    from: process.env.EMAIL_FROM || 'onboarding@resend.dev',
     to: emailAddress,
-    subject: `Báo giá ${order.order_name || order.id}`,
+    subject: `Báo giá ${order.quote_number || order.id}`,
     html: buildQuoteHtml(order, { name: order.customer_name || 'Khách hàng' }),
-  };
+  });
 
-  const info = await transporter.sendMail(mailOptions);
-  return { success: true, messageId: info.messageId };
+  if (error) throw new Error(`Lỗi Resend: ${error.message}`);
+  return { success: true, messageId: data.id };
 }
 
 module.exports = { sendQuoteEmail, sendInvoiceEmail, buildQuoteHtml, getQuoteDetail };
