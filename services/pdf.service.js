@@ -60,10 +60,13 @@ async function generateInvoicePDF(orderId) {
   const doc = new PDFDocument({ margin: 50 });
   const chunks = [];
 
-  // Nối đường dẫn đến font Arial của Windows
-  const fontPath = 'C:\\Windows\\Fonts\\arial.ttf';
+  // Dùng path.join để trỏ đến thư mục fonts/Roboto-Regular.ttf ở thư mục gốc dự án
+  // __dirname đang là thư mục services/, nên dùng '..' để lùi ra ngoài 1 cấp
+  const fontPath = path.join(__dirname, '../fonts/Roboto-Regular.ttf');
   if (fs.existsSync(fontPath)) {
     doc.font(fontPath); // Set font mặc định toàn văn bản
+  } else {
+    console.warn('Cảnh báo: Không tìm thấy file font tiếng Việt tại', fontPath);
   }
 
   doc.on('data', (chunk) => chunks.push(chunk));
